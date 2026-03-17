@@ -1,0 +1,9 @@
+[submodule "apps/pizzaria-back"]
+	path = apps/pizzaria-back
+	url = https://github.com/Davi64Lima/pizzaria-back.git
+[submodule "apps/pizzaria-front"]
+	path = apps/pizzaria-front
+	url = https://github.com/Davi64Lima/pizzaria-front.git
+[submodule "apps/whats-pizza-bot"]
+	path = apps/whats-pizza-bot
+	url = https://github.com/Davi64Lima/whats-pizza-bot.git
