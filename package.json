@@ -9,11 +9,6 @@
     "pizzaria-front": "cd apps/pizzaria-front && npm start",
     "pizzaria-back": "cd apps/pizzaria-back && npm start"
   },
-  "dependencies": {
-    "whats-pizza-bot": "file:apps/whats-pizza-bot",
-    "pizzaria-front": "file:apps/pizzaria-front",
-    "pizzaria-back": "file:apps/pizzaria-back"
-  },
   "devDependencies": {},
   "repository": {
     "type": "git",
