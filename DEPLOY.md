@@ -1,37 +1,40 @@
-# Deploy — Oracle Cloud (free) + Cloudflare (free)
+# Deploy — Hetzner Cloud (CAX11) + Cloudflare (free)
 
 Arquitetura:
 
 ```
 Internet → Cloudflare (DNS, SSL, DDoS, WAF)
               ↓ Cloudflare Tunnel (conexão de SAÍDA do cloudflared)
-          VM Oracle: front:3000 · back:3001 · bot:3003 (interno)
+          Servidor Hetzner: front:3000 · back:3001 · bot:3003 (interno)
 ```
 
-Nenhuma porta aberta na VM além do SSH. Substitua `SEU_DOMINIO` pelo seu domínio.
+Nenhuma porta aberta no servidor além do SSH. Substitua `SEU_DOMINIO` pelo seu domínio.
 
 ---
 
-## 1. Criar a VM na Oracle
+## 1. Criar o servidor na Hetzner
 
-Console Oracle → Compute → Instances → **Create instance**:
+[console.hetzner.cloud](https://console.hetzner.cloud) → **New project** (ex: `pizzaria`) → **Add server**:
 
-- **Image:** Ubuntu 24.04 (aarch64)
-- **Shape:** `VM.Standard.A1.Flex` — **2 OCPUs / 12 GB RAM** (limite Always Free atual)
-- **Boot volume:** 50–100 GB (o free tier dá 200 GB no total)
+- **Location:** Falkenstein ou Helsinki (mais baratas; latência não é fator — o tráfego entra pela Cloudflare)
+- **Image:** Ubuntu 24.04
+- **Type:** **Arm64 (Ampere)** → **CAX11** (2 vCPU, 4 GB, 40 GB) — €5,99/mês
+- **Networking:** marque **IPv4** (+ ~€0,60/mês) e IPv6
+  - Alternativa: IPv6-only economiza o IPv4 — só se sua internet tiver IPv6 (teste em test-ipv6.com), senão você não acessa o SSH
 - **SSH key:** cole sua chave pública
-- Rede: pode deixar a VCN padrão. **Não abra portas** além da 22 (default)
+- **Firewall** (grátis, recomendado): crie um com regra inbound única — TCP 22 (SSH). Todo o resto entra pelo túnel
+- **Backups** (opcional): +20% (~€1,20/mês) por snapshots automáticos — vale pelo preço
+- Nomeie (ex: `pizzaria`) → **Create & Buy now**
 
-> Se der "Out of capacity" no shape A1: tente outro Availability Domain, ou horários alternativos. Persistindo, tente diariamente — a capacidade free é disputada.
+Acesse: `ssh root@IP_DO_SERVIDOR`
 
-Acesse: `ssh ubuntu@IP_DA_VM`
+> Ficou na Oracle free? O guia funciona igual — só o passo 1 muda (VM A1.Flex, usuário `ubuntu`).
 
 ## 2. Instalar Docker
 
 ```bash
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker ubuntu
-exit   # reconecte para o grupo valer
+apt update && apt install -y curl git
+curl -fsSL https://get.docker.com | sh
 ```
 
 ## 3. Clonar o projeto
@@ -118,4 +121,4 @@ docker compose exec back sh -c "cp /data/dev.db /data/backup-$(date +%F).db"
 
 - **Cloudflare Access** na frente de `admin.SEU_DOMINIO` (Zero Trust → Access): exige e-mail autorizado ANTES de chegar na aplicação — grátis até 50 usuários
 - Regra WAF de rate limit no endpoint `api.SEU_DOMINIO/auth/login`
-- Desativar SSH por senha (`PasswordAuthentication no`) — na Oracle já vem assim por padrão
+- SSH: criando o servidor com chave SSH, a Hetzner já desativa login por senha; mantenha o firewall só com a porta 22
