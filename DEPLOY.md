@@ -122,3 +122,42 @@ docker compose exec back sh -c "cp /data/dev.db /data/backup-$(date +%F).db"
 - **Cloudflare Access** na frente de `admin.SEU_DOMINIO` (Zero Trust → Access): exige e-mail autorizado ANTES de chegar na aplicação — grátis até 50 usuários
 - Regra WAF de rate limit no endpoint `api.SEU_DOMINIO/auth/login`
 - SSH: criando o servidor com chave SSH, a Hetzner já desativa login por senha; mantenha o firewall só com a porta 22
+
+## Deploy automático (CI/CD)
+
+O workflow `.github/workflows/deploy.yml` (no repo `pizzaria-suite`) faz o deploy sozinho: a cada push na `main` do suite — ou pelo botão **Run workflow** na aba Actions — ele conecta via SSH no servidor e roda `git pull` + `submodule update` + `docker compose up -d --build`.
+
+Fluxo de trabalho passa a ser: commit/push nos apps → bump do ponteiro no suite (`git add apps && git commit && git push`) → o resto acontece sozinho.
+
+### 1. Chave SSH dedicada para o CI
+
+No seu computador, gere um par só para o deploy (sem passphrase):
+
+```bash
+ssh-keygen -t ed25519 -C "github-deploy" -f ~/.ssh/pizzaria_deploy -N ""
+```
+
+No servidor, autorize a chave pública:
+
+```bash
+cat ~/.ssh/pizzaria_deploy.pub | ssh root@IP_DO_SERVIDOR 'cat >> ~/.ssh/authorized_keys'
+```
+
+### 2. Secrets no GitHub
+
+Em `pizzaria-suite` → **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | Valor |
+|---|---|
+| `DEPLOY_HOST` | IP do servidor |
+| `DEPLOY_USER` | `root` (ou `ubuntu` na Oracle) |
+| `DEPLOY_SSH_KEY` | conteúdo de `~/.ssh/pizzaria_deploy` (a chave **privada**, completa) |
+| `DEPLOY_PORT` | `22` |
+
+### 3. Pré-requisitos no servidor
+
+- O suite já clonado em `~/pizzaria-suite` (ajuste o `cd` do workflow se for outro caminho).
+- Credenciais git salvas (`git config --global credential.helper store` + um pull já feito), pois os submódulos privados são baixados com o PAT.
+- O usuário do deploy precisa rodar `docker` (se usar `ubuntu`, adicione ao grupo: `usermod -aG docker ubuntu`).
+
+Pronto: o primeiro deploy pode ser disparado manualmente em **Actions → Deploy → Run workflow** para validar a conexão.
