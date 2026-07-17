@@ -16,28 +16,39 @@ pizzaria-suite
 └── README.md                  # Documentação do projeto
 ```
 
-## Instruções de Configuração
+## Rodando com Docker (recomendado)
 
-1. **Clone o repositório:**
+1. **Clone com submódulos:**
    ```bash
-   git clone <URL_DO_REPOSITORIO>
+   git clone --recurse-submodules https://github.com/Davi64Lima/pizzaria-suite.git
    cd pizzaria-suite
    ```
 
-2. **Instale as dependências:**
-   Para cada um dos aplicativos, navegue até o diretório correspondente e execute:
+2. **Configure as variáveis:**
    ```bash
-   npm install
+   cp .env.example .env
+   # edite SHARED_API_KEY, JWT_SECRET, ALLOWED_NUMBERS etc.
    ```
 
-3. **Inicie os aplicativos:**
-   Utilize o script `dev.sh` para iniciar todos os aplicativos simultaneamente:
+3. **Suba tudo:**
    ```bash
-   ./scripts/dev.sh
+   docker compose up --build -d
    ```
 
-4. **Acesse a interface web:**
-   Após iniciar os aplicativos, a interface do `pizzaria-front` será aberta automaticamente no seu navegador padrão.
+4. **Crie o admin inicial e escaneie o QR do WhatsApp:**
+   ```bash
+   docker compose exec back npm run seed
+   docker compose logs -f bot   # QR code aparece aqui
+   ```
+
+Portas: front `:3000` · back `:3001` · bot `:3003`. Banco (SQLite) e sessão do WhatsApp ficam em volumes (`back-data`, `bot-data`, `wwebjs-auth`).
+
+## Rodando sem Docker (dev)
+
+Instale as dependências (`npm install` em cada app), copie os `.env.example` de cada app para `.env` e use:
+```bash
+./scripts/dev.sh
+```
 
 ## Componentes do Projeto
 

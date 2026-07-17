@@ -1,0 +1,55 @@
+name: pizzaria-suite
+
+services:
+  back:
+    build: ./apps/pizzaria-back
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DATABASE_URL: file:/data/dev.db
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-troque-em-producao}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      BOT_API_URL: http://bot:3003
+      BOT_API_KEY: ${SHARED_API_KEY:-dev-shared-key-pizzaria}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@pizzaria.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      ADMIN_PHONE: ${ADMIN_PHONE:-5500000000000}
+    volumes:
+      - back-data:/data
+
+  front:
+    build:
+      context: ./apps/pizzaria-front
+      args:
+        # Embutida no bundle do browser em build time
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - back
+
+  bot:
+    build: ./apps/whats-pizza-bot
+    ports:
+      - "3003:3003"
+    environment:
+      PIZZA_API_URL: http://back:3001
+      API_KEY: ${SHARED_API_KEY:-dev-shared-key-pizzaria}
+      ALLOWED_NUMBERS: ${ALLOWED_NUMBERS:-}
+      ATTENDANT_NUMBER: ${ATTENDANT_NUMBER:-}
+      SESSIONS_FILE: /data/sessions.json
+      ORDERS_LOG_FILE: /data/orders-log.json
+      API_PORT: 3003
+    volumes:
+      - bot-data:/data
+      # Sessão do WhatsApp Web — sem isso, precisa escanear o QR a cada restart
+      - wwebjs-auth:/app/.wwebjs_auth
+    depends_on:
+      - back
+
+volumes:
+  back-data:
+  bot-data:
+  wwebjs-auth:
