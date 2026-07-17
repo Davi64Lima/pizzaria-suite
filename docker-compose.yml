@@ -3,8 +3,10 @@ name: pizzaria-suite
 services:
   back:
     build: ./apps/pizzaria-back
+    restart: unless-stopped
     ports:
-      - "3001:3001"
+      # bind em localhost: acessível na máquina (dev/debug), invisível pra internet
+      - "127.0.0.1:3001:3001"
     environment:
       PORT: 3001
       NODE_ENV: production
@@ -25,15 +27,17 @@ services:
       args:
         # Embutida no bundle do browser em build time
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001}
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - back
 
   bot:
     build: ./apps/whats-pizza-bot
+    restart: unless-stopped
     ports:
-      - "3003:3003"
+      - "127.0.0.1:3003:3003"
     environment:
       PIZZA_API_URL: http://back:3001
       API_KEY: ${SHARED_API_KEY:-dev-shared-key-pizzaria}
@@ -47,6 +51,19 @@ services:
       # Sessão do WhatsApp Web — sem isso, precisa escanear o QR a cada restart
       - wwebjs-auth:/app/.wwebjs_auth
     depends_on:
+      - back
+
+  # Túnel Cloudflare: expõe front e back via seu domínio SEM abrir portas na VM.
+  # Só sobe com: docker compose --profile prod up -d
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    profiles: [prod]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?defina TUNNEL_TOKEN no .env (token do túnel no dashboard da Cloudflare)}
+    depends_on:
+      - front
       - back
 
 volumes:
