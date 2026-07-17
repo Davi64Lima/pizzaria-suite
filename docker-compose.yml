@@ -46,6 +46,9 @@ services:
       SESSIONS_FILE: /data/sessions.json
       ORDERS_LOG_FILE: /data/orders-log.json
       API_PORT: 3003
+      # IA de entendimento (opcional; vazio = desligada)
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
     volumes:
       - bot-data:/data
       # Sessão do WhatsApp Web — sem isso, precisa escanear o QR a cada restart
