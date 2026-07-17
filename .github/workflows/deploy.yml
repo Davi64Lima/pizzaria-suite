@@ -16,6 +16,23 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checar secrets (diagnóstico)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          fail=0
+          [ -z "$DEPLOY_HOST" ] && { echo "::error::DEPLOY_HOST está vazio"; fail=1; } || echo "DEPLOY_HOST: ok"
+          [ -z "$DEPLOY_USER" ] && { echo "::error::DEPLOY_USER está vazio"; fail=1; } || echo "DEPLOY_USER: ok"
+          [ -z "$DEPLOY_SSH_KEY" ] && { echo "::error::DEPLOY_SSH_KEY está vazio"; fail=1; } || echo "DEPLOY_SSH_KEY: ok"
+          [ -z "$DEPLOY_PORT" ] && echo "DEPLOY_PORT vazio (usará 22)" || echo "DEPLOY_PORT: ok"
+          if [ "$fail" = "1" ]; then
+            echo "Secrets ausentes. Confira: aba SECRETS (não Variables), como Repository secret, no repo pizzaria-suite."
+            exit 1
+          fi
+
       - name: Deploy via SSH no servidor
         uses: appleboy/ssh-action@v1.2.0
         with:
