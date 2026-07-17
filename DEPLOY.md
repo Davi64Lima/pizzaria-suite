@@ -143,21 +143,43 @@ No servidor, autorize a chave pública:
 cat ~/.ssh/pizzaria_deploy.pub | ssh root@IP_DO_SERVIDOR 'cat >> ~/.ssh/authorized_keys'
 ```
 
-### 2. Secrets no GitHub
+### 2. Usuário dedicado de deploy (não use root)
 
-Em `pizzaria-suite` → **Settings → Secrets and variables → Actions → New repository secret**:
+Rodar CI como `root` é risco desnecessário. Crie um usuário `deploy` com acesso só ao SSH e ao Docker. **Como root:**
 
-| Secret | Valor |
+```bash
+adduser --disabled-password --gecos "" deploy   # sem senha: entra só por chave
+usermod -aG docker deploy                        # docker sem sudo
+
+mkdir -p /home/deploy/.ssh
+nano /home/deploy/.ssh/authorized_keys           # cole a chave PÚBLICA do CI (pizzaria_deploy.pub)
+chown -R deploy:deploy /home/deploy/.ssh
+chmod 700 /home/deploy/.ssh
+chmod 600 /home/deploy/.ssh/authorized_keys
+```
+
+Clone o suite na home do `deploy`. Como o compose fixa `name: pizzaria-suite`, ele controla os **mesmos** containers/volumes já existentes (banco e sessão do WhatsApp preservados):
+
+```bash
+cp /root/pizzaria-suite/.env /tmp/.env && chown deploy /tmp/.env   # como root
+
+su - deploy
+git config --global credential.helper store
+git clone --recurse-submodules https://github.com/Davi64Lima/pizzaria-suite.git
+#   usuário: Davi64Lima · senha: PAT (fica salvo, para os submódulos privados)
+cp /tmp/.env ~/pizzaria-suite/.env && rm /tmp/.env
+cd ~/pizzaria-suite && docker compose --profile prod up -d --build   # valida docker + git
+```
+
+### 3. Secrets no GitHub
+
+Em `pizzaria-suite` → **Settings → Secrets and variables → Actions → New repository secret**. Atenção: o campo **Name** é só o nome (ex: `DEPLOY_HOST`); o valor vai no campo de baixo, **sem aspas**.
+
+| Name | Valor |
 |---|---|
-| `DEPLOY_HOST` | IP do servidor |
-| `DEPLOY_USER` | `root` (ou `ubuntu` na Oracle) |
+| `DEPLOY_HOST` | IP do servidor (ex: `188.245.46.53`) |
+| `DEPLOY_USER` | `deploy` |
 | `DEPLOY_SSH_KEY` | conteúdo de `~/.ssh/pizzaria_deploy` (a chave **privada**, completa) |
 | `DEPLOY_PORT` | `22` |
 
-### 3. Pré-requisitos no servidor
-
-- O suite já clonado em `~/pizzaria-suite` (ajuste o `cd` do workflow se for outro caminho).
-- Credenciais git salvas (`git config --global credential.helper store` + um pull já feito), pois os submódulos privados são baixados com o PAT.
-- O usuário do deploy precisa rodar `docker` (se usar `ubuntu`, adicione ao grupo: `usermod -aG docker ubuntu`).
-
-Pronto: o primeiro deploy pode ser disparado manualmente em **Actions → Deploy → Run workflow** para validar a conexão.
+Pronto: dispare o primeiro deploy em **Actions → Deploy → Run workflow** para validar a conexão. O `cd ~/pizzaria-suite` do workflow resolve para `/home/deploy/pizzaria-suite`.
