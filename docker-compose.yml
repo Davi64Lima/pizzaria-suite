@@ -10,7 +10,9 @@ services:
     environment:
       PORT: 3001
       NODE_ENV: production
-      DATABASE_URL: file:/data/dev.db
+      # Vazio/ausente = SQLite local no volume. Para Turso: libsql://... + token
+      DATABASE_URL: ${DATABASE_URL:-file:/data/dev.db}
+      DATABASE_AUTH_TOKEN: ${DATABASE_AUTH_TOKEN:-}
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-troque-em-producao}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       BOT_API_URL: http://bot:3003

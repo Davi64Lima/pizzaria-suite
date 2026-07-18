@@ -123,6 +123,50 @@ docker compose logs -f back|front|bot|cloudflared
 docker compose exec back sh -c "cp /data/dev.db /data/backup-$(date +%F).db"
 ```
 
+## Banco de dados — migrar para Turso (recomendado em produção)
+
+O back usa o adapter **libsql**, então dá pra trocar o SQLite local por um **Turso** gerenciado (grátis, com backup/réplica) quase sem código — só variáveis de ambiente. O runtime é drop-in; as **migrações** no Turso são aplicadas via `turso db shell` (o `migrate deploy` do boot é pulado automaticamente quando `DATABASE_URL` é `libsql://`).
+
+### 1. Instalar a CLI e logar
+
+```bash
+curl -sSfL https://get.tur.so/install.sh | bash   # Mac/Linux
+turso auth signup                                 # cria a conta (grátis)
+```
+
+### 2. Criar o DB do Turso a partir do banco atual (preserva os dados)
+
+Primeiro copie o `dev.db` do servidor (ver seção de backup acima ou `docker cp pizzaria-suite-back-1:/data/dev.db ./pizzaria.db`). Depois:
+
+```bash
+turso db create pizzaria --from-file ./pizzaria.db   # importa schema + dados
+turso db show pizzaria --url                         # -> libsql://pizzaria-XXXX.turso.io
+turso db tokens create pizzaria                      # -> o token de auth
+```
+
+### 3. Apontar o back pro Turso
+
+No `.env` do servidor:
+
+```env
+DATABASE_URL=libsql://pizzaria-XXXX.turso.io
+DATABASE_AUTH_TOKEN=<token do passo 2>
+```
+
+E recria o back: `docker compose --profile prod up -d --build back`. No log deve aparecer `DB remoto (Turso): pulando migrate deploy` e a aplicação subindo normalmente.
+
+### 4. Migrações futuras (no Turso)
+
+Quando houver uma migração nova (`apps/pizzaria-back/prisma/migrations/XXXX/migration.sql`), aplique no Turso:
+
+```bash
+turso db shell pizzaria < apps/pizzaria-back/prisma/migrations/XXXX/migration.sql
+```
+
+> Inspeção: `turso db shell pizzaria` abre um shell SQL interativo. Também dá pra usar o Prisma Studio localmente apontando pro Turso.
+
+Para voltar ao SQLite local, é só limpar `DATABASE_URL`/`DATABASE_AUTH_TOKEN` do `.env` e recriar o back.
+
 ## Hardening opcional (recomendado)
 
 - **Cloudflare Access** na frente de `admin.SEU_DOMINIO` (Zero Trust → Access): exige e-mail autorizado ANTES de chegar na aplicação — grátis até 50 usuários
