@@ -1,0 +1,65 @@
+# Stack de observabilidade — TUDO amarrado em 127.0.0.1 (nada exposto à internet).
+# Acesso do seu computador via túnel SSH (ver monitoring/README.md).
+# Projeto separado do suite de propósito: o deploy do CI não toca aqui.
+name: pizzaria-monitoring
+
+services:
+  # Gerenciador de containers (start/stop/restart, logs, imagens, volumes)
+  portainer:
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+
+  # Métricas do sistema e dos containers (CPU, RAM, disco, rede) + histórico
+  netdata:
+    image: netdata/netdata:latest
+    restart: unless-stopped
+    hostname: pizzaria-server
+    ports:
+      - "127.0.0.1:19999:19999"
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - netdataconfig:/etc/netdata
+      - netdatalib:/var/lib/netdata
+      - netdatacache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # Uptime / status dos serviços com alertas (configure os monitores na UI)
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3005:3001" # 3001 interno; 3005 no host pra não colidir com o back
+    volumes:
+      - uptimekuma-data:/app/data
+
+  # Logs ao vivo dos containers (leve)
+  dozzle:
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8888:8080"
+    environment:
+      DOZZLE_NO_ANALYTICS: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  portainer-data:
+  netdataconfig:
+  netdatalib:
+  netdatacache:
+  uptimekuma-data:
