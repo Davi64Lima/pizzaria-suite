@@ -57,14 +57,17 @@ cd pizzaria-suite
 
 1. [Zero Trust](https://one.dash.cloudflare.com) → **Networks → Tunnels → Create a tunnel** → tipo `cloudflared` → nomeie (ex: `pizzaria`)
 2. Em "Install and run a connector", escolha **Docker** e copie apenas o **token** (string longa após `--token`)
-3. Aba **Public Hostnames**, crie os dois:
+3. Aba **Public Hostnames**, crie os três:
 
 | Subdomain | Domain | Service |
 |---|---|---|
+| (vazio / `@`) | SEU_DOMINIO | `http://front:3000` |
 | `admin` | SEU_DOMINIO | `http://front:3000` |
 | `api` | SEU_DOMINIO | `http://back:3001` |
 
 > `front` e `back` são os nomes dos serviços na rede do Docker Compose — o cloudflared roda dentro dela.
+>
+> **Loja x Admin:** o apex (`SEU_DOMINIO`) e o `admin.SEU_DOMINIO` batem no mesmo `front`, mas o middleware isola por host: no apex só a **loja** aparece (a raiz `/`), e `admin.` só serve o **painel**. Acessar `/admin` pelo apex redireciona pra loja; acessar a raiz pelo `admin.` cai no painel. Proteja o `admin.` com **Cloudflare Access** por cima disso.
 
 ## 6. Configurar o `.env`
 
@@ -82,10 +85,13 @@ ADMIN_EMAIL=seu@email.com
 ADMIN_PASSWORD=<senha forte>
 ADMIN_PHONE=55DDDNUMERO
 NEXT_PUBLIC_API_BASE_URL=https://api.SEU_DOMINIO
-CORS_ORIGIN=https://admin.SEU_DOMINIO
+# CORS precisa liberar o admin E a loja (apex), separados por vírgula
+CORS_ORIGIN=https://admin.SEU_DOMINIO,https://SEU_DOMINIO
 ALLOWED_NUMBERS=*
 ATTENDANT_NUMBER=55DDDNUMERO
 TUNNEL_TOKEN=<token do passo 5>
+# Loja: número da pizzaria (com DDI, só dígitos) pro link do WhatsApp
+STORE_WHATSAPP_NUMBER=55DDDNUMERO
 ```
 
 ## 7. Subir tudo
