@@ -125,7 +125,7 @@ docker compose exec back sh -c "cp /data/dev.db /data/backup-$(date +%F).db"
 
 ## Banco de dados — migrar para Turso (recomendado em produção)
 
-O back usa o adapter **libsql**, então dá pra trocar o SQLite local por um **Turso** gerenciado (grátis, com backup/réplica) quase sem código — só variáveis de ambiente. O runtime é drop-in; as **migrações** no Turso são aplicadas via `turso db shell` (o `migrate deploy` do boot é pulado automaticamente quando `DATABASE_URL` é `libsql://`).
+O back usa o adapter **libsql**, então dá pra trocar o SQLite local por um **Turso** gerenciado (grátis, com backup/réplica) quase sem código — só variáveis de ambiente. As **migrações são aplicadas automaticamente no boot** por `scripts/apply-migrations.mjs` (usa o `@libsql/client`, funciona em SQLite local E no Turso, e é idempotente via `_prisma_migrations`). Ou seja: a cada deploy que recria o `back`, as migrations pendentes entram sozinhas — no local e no Turso.
 
 ### 1. Instalar a CLI e logar
 
@@ -155,15 +155,15 @@ DATABASE_AUTH_TOKEN=<token do passo 2>
 
 E recria o back: `docker compose --profile prod up -d --build back`. No log deve aparecer `DB remoto (Turso): pulando migrate deploy` e a aplicação subindo normalmente.
 
-### 4. Migrações futuras (no Turso)
+### 4. Migrações futuras
 
-Quando houver uma migração nova (`apps/pizzaria-back/prisma/migrations/XXXX/migration.sql`), aplique no Turso:
+Não precisa fazer nada manual: ao recriar o `back` no deploy, o `scripts/apply-migrations.mjs` aplica as migrations pendentes no Turso automaticamente (idempotente). Se quiser aplicar na mão fora do deploy, ainda dá:
 
 ```bash
 turso db shell pizzaria < apps/pizzaria-back/prisma/migrations/XXXX/migration.sql
 ```
 
-> Inspeção: `turso db shell pizzaria` abre um shell SQL interativo. Também dá pra usar o Prisma Studio localmente apontando pro Turso.
+> Inspeção: `turso db shell pizzaria` abre um shell SQL interativo. Ou use o Outerbase/LibSQL Studio (GUI) com a URL + token.
 
 Para voltar ao SQLite local, é só limpar `DATABASE_URL`/`DATABASE_AUTH_TOKEN` do `.env` e recriar o back.
 
