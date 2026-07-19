@@ -31,6 +31,13 @@ services:
       BACKUP_DIR: ${BACKUP_DIR:-/data/backups}
       BACKUP_RETENTION: ${BACKUP_RETENTION:-14}
       BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+      # Backup offsite (S3-compatível: Cloudflare R2 / Backblaze B2). Vazio = desligado
+      BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      BACKUP_S3_REGION: ${BACKUP_S3_REGION:-auto}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      BACKUP_S3_ACCESS_KEY: ${BACKUP_S3_ACCESS_KEY:-}
+      BACKUP_S3_SECRET_KEY: ${BACKUP_S3_SECRET_KEY:-}
+      BACKUP_S3_PREFIX: ${BACKUP_S3_PREFIX:-}
       # Relatório diário (hora local BRT em que sai o resumo de ontem)
       REPORT_HOUR: ${REPORT_HOUR:-8}
       # Campanhas de mensagem: intervalo entre envios (ms) e teto diário (anti-ban)
