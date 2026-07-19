@@ -20,6 +20,13 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@pizzaria.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       ADMIN_PHONE: ${ADMIN_PHONE:-5500000000000}
+      # E-mail de alerta (opcional; vazio = desligado). Ex: Gmail com senha de app
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     volumes:
       - back-data:/data
 

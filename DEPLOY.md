@@ -223,6 +223,26 @@ google-chrome --kiosk-printing --app=https://admin.SEU_DOMINIO/admin/orders
 
 > Dica: no papel 80mm, confira em *Configurações de impressão* que o tamanho está como 80mm/rolo e as margens em "nenhuma". A comanda já vem com `@page size: 80mm auto`.
 
+## Alertas de queda do bot (e-mail + WhatsApp)
+
+Se o WhatsApp do bot cair (logout/queda), o painel avisa por **e-mail** (sempre) e por **WhatsApp** assim que ele reconecta. Configure em dois lugares:
+
+1. **No painel** → aba **Bot** → *Alertas de queda*: informe o **WhatsApp do atendente** (DDI+DDD, só números) e o **e-mail de alerta**. Fica salvo no banco.
+2. **No `.env`** (envio de e-mail via SMTP — sem isso, só o WhatsApp de "voltei" funciona):
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=seuemail@gmail.com
+SMTP_PASS=<senha de app do Gmail>   # NÃO é a senha normal
+SMTP_FROM=seuemail@gmail.com
+```
+
+> Gmail: ative a verificação em 2 etapas e gere uma **Senha de app** (myaccount.google.com → Segurança → Senhas de app). Use-a em `SMTP_PASS`. Outros provedores (Outlook, Zoho, Resend, Mailgun) funcionam igual — só troque host/porta/credenciais. Depois de editar o `.env`, recrie o back: `docker compose up -d --force-recreate back`.
+
+Por que dois canais: quando o WhatsApp do bot desloga, ele **não consegue** mandar WhatsApp — por isso o e-mail é o alerta confiável nesse caso. O WhatsApp é usado pra avisar quando ele **volta**.
+
 ## Hardening opcional (recomendado)
 
 - **Cloudflare Access** na frente de `admin.SEU_DOMINIO` (Zero Trust → Access): exige e-mail autorizado ANTES de chegar na aplicação — grátis até 50 usuários
