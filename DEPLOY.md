@@ -167,6 +167,33 @@ turso db shell pizzaria < apps/pizzaria-back/prisma/migrations/XXXX/migration.sq
 
 Para voltar ao SQLite local, é só limpar `DATABASE_URL`/`DATABASE_AUTH_TOKEN` do `.env` e recriar o back.
 
+### 5. Rotacionar o token (segurança)
+
+Se um token de auth vazar (ex.: colado em um chat/print), rotacione. O Turso
+revoga **todos** os tokens do grupo de uma vez, então há uns segundos de
+indisponibilidade até o `back` subir com o token novo — faça em horário calmo.
+No servidor, como o usuário `deploy`:
+
+```bash
+export PATH="$HOME/.turso:$PATH"
+
+# 1. Revoga TODOS os tokens do grupo (o vazado inclusive)
+turso group tokens invalidate default
+
+# 2. Cria um token novo (copie o valor)
+turso group tokens create default
+
+# 3. Atualize o .env com o token novo
+nano ~/pizzaria-suite/.env        # DATABASE_AUTH_TOKEN=<novo token>
+
+# 4. Recria o back pra pegar o token novo (sem rebuild)
+cd ~/pizzaria-suite && docker compose up -d --force-recreate back
+docker compose logs -f back        # confere que subiu sem erro de auth
+```
+
+> Nunca cole o token em chats/prints. Se precisar compartilhar, trate como
+> senha. O único lugar dele é o `.env` do servidor (fora do git).
+
 ## Hardening opcional (recomendado)
 
 - **Cloudflare Access** na frente de `admin.SEU_DOMINIO` (Zero Trust → Access): exige e-mail autorizado ANTES de chegar na aplicação — grátis até 50 usuários
