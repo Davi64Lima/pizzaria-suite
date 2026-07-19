@@ -194,6 +194,35 @@ docker compose logs -f back        # confere que subiu sem erro de auth
 > Nunca cole o token em chats/prints. Se precisar compartilhar, trate como
 > senha. O único lugar dele é o `.env` do servidor (fora do git).
 
+## Impressão de comandas (computador da pizzaria)
+
+O painel imprime a comanda em **cupom 80mm** (impressora térmica). Há duas formas:
+
+- **Botão "Imprimir"** em cada pedido (card do kanban e tela de detalhe) — funciona em qualquer navegador.
+- **Auto-impressão**: o botão *Auto-impressão: ON/OFF* no topo de **Pedidos** liga a impressão automática. O painel verifica novos pedidos a cada ~15s e imprime os que chegaram (só os dos últimos 10 min, pra não sair o histórico ao abrir a tela). A preferência fica salva no navegador daquele computador.
+
+### Impressão silenciosa (sem a janela "Imprimir")
+
+Por segurança, o navegador mostra a caixa de diálogo a cada impressão. Para a cozinha, abra o painel no **Chrome em modo kiosk-printing**, que imprime direto na impressora padrão:
+
+1. Defina a impressora térmica como **padrão** no sistema operacional.
+2. Feche o Chrome e abra pelo atalho/terminal com a flag:
+
+```bash
+# Windows (ajuste o caminho do chrome.exe)
+chrome.exe --kiosk-printing --app=https://admin.SEU_DOMINIO/admin/orders
+
+# macOS
+open -a "Google Chrome" --args --kiosk-printing --app=https://admin.SEU_DOMINIO/admin/orders
+
+# Linux
+google-chrome --kiosk-printing --app=https://admin.SEU_DOMINIO/admin/orders
+```
+
+3. Faça login uma vez e deixe a tela de **Pedidos** aberta com *Auto-impressão: ON*.
+
+> Dica: no papel 80mm, confira em *Configurações de impressão* que o tamanho está como 80mm/rolo e as margens em "nenhuma". A comanda já vem com `@page size: 80mm auto`.
+
 ## Hardening opcional (recomendado)
 
 - **Cloudflare Access** na frente de `admin.SEU_DOMINIO` (Zero Trust → Access): exige e-mail autorizado ANTES de chegar na aplicação — grátis até 50 usuários
