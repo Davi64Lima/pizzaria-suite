@@ -223,6 +223,10 @@ google-chrome --kiosk-printing --app=https://admin.SEU_DOMINIO/admin/orders
 
 > Dica: no papel 80mm, confira em *Configurações de impressão* que o tamanho está como 80mm/rolo e as margens em "nenhuma". A comanda já vem com `@page size: 80mm auto`.
 
+## Relatório diário
+
+Toda manhã (por padrão **8h**, horário de Brasília — ajuste com `REPORT_HOUR`) o back envia o resumo do dia anterior (pedidos, faturamento, ticket médio, entrega×retirada, top itens) por **WhatsApp** e/ou **e-mail**. Configure os destinatários no painel → **Configurações → Relatório diário** (`REPORT_PHONE`/`REPORT_EMAIL`). O e-mail usa o mesmo SMTP dos alertas; o WhatsApp usa o bot. Há um botão **Enviar agora (teste)**.
+
 ## Backup automático do banco
 
 O back gera um **dump SQL diário** do banco (funciona no Turso e no SQLite local) no volume `back-data`, em `/data/backups`, mantendo os últimos 14 (configurável). No painel → **Configurações → Backups** dá pra ver a lista, **baixar** cada dump e **Fazer backup agora**.

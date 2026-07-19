@@ -31,6 +31,8 @@ services:
       BACKUP_DIR: ${BACKUP_DIR:-/data/backups}
       BACKUP_RETENTION: ${BACKUP_RETENTION:-14}
       BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+      # Relatório diário (hora local BRT em que sai o resumo de ontem)
+      REPORT_HOUR: ${REPORT_HOUR:-8}
     volumes:
       - back-data:/data
 
