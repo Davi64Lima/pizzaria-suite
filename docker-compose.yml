@@ -33,6 +33,9 @@ services:
       BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
       # Relatório diário (hora local BRT em que sai o resumo de ontem)
       REPORT_HOUR: ${REPORT_HOUR:-8}
+      # Campanhas de mensagem: intervalo entre envios (ms) e teto diário (anti-ban)
+      CAMPAIGN_SEND_INTERVAL_MS: ${CAMPAIGN_SEND_INTERVAL_MS:-12000}
+      CAMPAIGN_DAILY_CAP: ${CAMPAIGN_DAILY_CAP:-50}
     volumes:
       - back-data:/data
 

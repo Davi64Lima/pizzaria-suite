@@ -223,6 +223,22 @@ google-chrome --kiosk-printing --app=https://admin.SEU_DOMINIO/admin/orders
 
 > Dica: no papel 80mm, confira em *Configurações de impressão* que o tamanho está como 80mm/rolo e as margens em "nenhuma". A comanda já vem com `@page size: 80mm auto`.
 
+## Campanhas
+
+Dois tipos, no painel → **Campanhas**:
+
+- **Descontos automáticos** (primeira compra, dia da semana): aplicam sozinhos no checkout (loja e bot), sem o cliente digitar cupom. Não empilham com cupom digitado — entre campanhas, vale a de maior desconto.
+- **Mensagens ativas** (win-back "faz tempo que não te vejo", fidelidade a partir de N pedidos): o sistema calcula os alvos a partir do histórico, você revisa e **dispara** pelo botão ✉️. Use `{nome}` na mensagem pro primeiro nome do cliente.
+
+⚠️ **Risco de ban:** disparo de marketing em massa pelo WhatsApp pode bloquear o número. Por isso o envio é **controlado**: sai aos poucos (intervalo entre mensagens), com **teto diário**, só pra quem já é cliente, e sem repetir quem já recebeu. Ajuste por env:
+
+```env
+CAMPAIGN_SEND_INTERVAL_MS=12000   # intervalo entre mensagens (ms)
+CAMPAIGN_DAILY_CAP=50             # máximo de envios por dia (todas as campanhas)
+```
+
+> Requer o bot **conectado** (as mensagens saem pelo WhatsApp dele). Comece com listas pequenas e textos que soem pessoais, não propaganda.
+
 ## Relatório diário
 
 Toda manhã (por padrão **8h**, horário de Brasília — ajuste com `REPORT_HOUR`) o back envia o resumo do dia anterior (pedidos, faturamento, ticket médio, entrega×retirada, top itens) por **WhatsApp** e/ou **e-mail**. Configure os destinatários no painel → **Configurações → Relatório diário** (`REPORT_PHONE`/`REPORT_EMAIL`). O e-mail usa o mesmo SMTP dos alertas; o WhatsApp usa o bot. Há um botão **Enviar agora (teste)**.
