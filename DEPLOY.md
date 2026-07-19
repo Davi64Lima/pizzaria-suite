@@ -223,6 +223,36 @@ google-chrome --kiosk-printing --app=https://admin.SEU_DOMINIO/admin/orders
 
 > Dica: no papel 80mm, confira em *Configurações de impressão* que o tamanho está como 80mm/rolo e as margens em "nenhuma". A comanda já vem com `@page size: 80mm auto`.
 
+## Backup automático do banco
+
+O back gera um **dump SQL diário** do banco (funciona no Turso e no SQLite local) no volume `back-data`, em `/data/backups`, mantendo os últimos 14 (configurável). No painel → **Configurações → Backups** dá pra ver a lista, **baixar** cada dump e **Fazer backup agora**.
+
+Ajustes por env (opcionais):
+
+```env
+BACKUP_DIR=/data/backups
+BACKUP_RETENTION=14         # quantos dumps manter
+BACKUP_INTERVAL_HOURS=24    # frequência
+```
+
+> Recomendo **baixar os dumps de tempos em tempos** e guardar fora do servidor (Drive, etc.) — o backup no volume protege contra erro humano/migração ruim, mas não contra perder o servidor.
+
+### Restaurar um backup
+
+O dump inclui schema + dados. Restaure num banco **novo/vazio** (não por cima do atual):
+
+```bash
+# Turso: cria um DB de restauração e aplica o dump
+turso db create pizzaria-restore
+turso db shell pizzaria-restore < pizzaria-AAAAMMDD-HHMMSS.sql
+# inspecione; se for pra assumir a produção, aponte DATABASE_URL pro novo DB e recrie o back
+
+# SQLite local
+sqlite3 restore.db < pizzaria-AAAAMMDD-HHMMSS.sql
+```
+
+Copiar um dump de dentro do container: `docker cp pizzaria-suite-back-1:/data/backups/<arquivo>.sql .`
+
 ## Alertas de queda do bot (e-mail + WhatsApp)
 
 Se o WhatsApp do bot cair (logout/queda), o painel avisa por **e-mail** (sempre) e por **WhatsApp** assim que ele reconecta. Configure em dois lugares:

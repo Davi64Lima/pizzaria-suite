@@ -27,6 +27,10 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      # Backup automático do banco (dump no volume back-data)
+      BACKUP_DIR: ${BACKUP_DIR:-/data/backups}
+      BACKUP_RETENTION: ${BACKUP_RETENTION:-14}
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
     volumes:
       - back-data:/data
 
