@@ -43,6 +43,9 @@ services:
       # Campanhas de mensagem: intervalo entre envios (ms) e teto diário (anti-ban)
       CAMPAIGN_SEND_INTERVAL_MS: ${CAMPAIGN_SEND_INTERVAL_MS:-12000}
       CAMPAIGN_DAILY_CAP: ${CAMPAIGN_DAILY_CAP:-50}
+      # Console do operador (SaaS): chave pra ligar/desligar módulos remotamente.
+      # Vazia = endpoint desligado. Cada instância tem a sua.
+      OPERATOR_KEY: ${OPERATOR_KEY:-}
     volumes:
       - back-data:/data
 
@@ -53,6 +56,8 @@ services:
         # Embutidas no bundle do browser em build time
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001}
         NEXT_PUBLIC_WHATSAPP_NUMBER: ${STORE_WHATSAPP_NUMBER:-}
+        # "on" habilita o console do operador (/operator) — só na instância do operador
+        NEXT_PUBLIC_OPERATOR_CONSOLE: ${OPERATOR_CONSOLE:-}
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"
