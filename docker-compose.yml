@@ -66,6 +66,9 @@ services:
       # sem expor a chave no navegador. URL interna da rede do compose.
       PIZZA_API_URL: http://back:3001
       STORE_API_KEY: ${SHARED_API_KEY:-dev-shared-key-pizzaria}
+      # Multi-inquilino: domínio base pra extrair o tenant do subdomínio
+      # ({slug}.DOMINIO / admin.{slug}.DOMINIO). Vazio = single-tenant (default).
+      SAAS_BASE_DOMAIN: ${SAAS_BASE_DOMAIN:-}
     depends_on:
       - back
 
