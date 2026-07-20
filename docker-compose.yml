@@ -80,6 +80,8 @@ services:
     environment:
       PIZZA_API_URL: http://back:3001
       API_KEY: ${SHARED_API_KEY:-dev-shared-key-pizzaria}
+      # Multi-inquilino: slug do tenant deste bot (vazio = default)
+      TENANT_SLUG: ${BOT_TENANT_SLUG:-}
       ALLOWED_NUMBERS: ${ALLOWED_NUMBERS:-}
       ATTENDANT_NUMBER: ${ATTENDANT_NUMBER:-}
       SESSIONS_FILE: /data/sessions.json
