@@ -107,7 +107,9 @@ services:
     profiles: [prod]
     command: tunnel --no-autoupdate run
     environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?defina TUNNEL_TOKEN no .env (token do túnel no dashboard da Cloudflare)}
+      # Necessário pra subir o túnel (perfil prod). Fica vazio fora do prod pra
+      # não travar builds/up locais; o cloudflared só sobe com --profile prod.
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
     depends_on:
       - front
       - back
